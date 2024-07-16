@@ -35,3 +35,4 @@ export function isRestaurant(
 export function isDish(item: IChef | IRestaurant | IDish): item is IDish {
   return (item as IDish).price !== undefined;
 }
+// spread the function to collections
