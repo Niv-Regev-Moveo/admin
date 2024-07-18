@@ -1,66 +1,32 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import Paper from "@mui/material/Paper";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
-import TableRow from "@mui/material/TableRow";
-import { styled } from "@mui/material/styles";
 import { useParams } from "react-router-dom";
 import { RootState, AppDispatch } from "../../../../../redux/store/store";
-import { getCollection } from "../../../../../redux/chunks/collection/collection.thunks";
+import {
+  getCollection,
+  updateStatus,
+} from "../../../../../redux/chunks/collection/collection.thunks";
 import {
   Collection,
   ICommonItem,
 } from "../../../../../redux/chunks/collection/collection.type";
 import {
   StyledButtonsContainer,
+  StyledPaper,
+  StyledTable,
+  StyledTableCell,
+  StyledTableContainer,
   StyledTablePagination,
+  StyledTableRow,
   Tooltip,
   TooltipText,
 } from "./styles";
 import { filterFields } from "../../../../../services/collectionService";
 import TableButton from "../TableButton/TableButton";
-
-const StyledTableCell = styled(TableCell)<{
-  status?: string;
-}>(({ theme, status }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.white,
-    color: theme.palette.common.black,
-    textTransform: "uppercase",
-    textAlign: "center",
-    position: "sticky",
-    top: 0,
-    zIndex: theme.zIndex.appBar,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-    maxWidth: 350,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    backgroundColor: status
-      ? status === "active"
-        ? "lightgreen"
-        : "lightcoral"
-      : "white",
-    color: "black",
-    textAlign: "center",
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-  height: "68px",
-}));
+import { formatFieldName } from "../../../../../services/collectionService";
+import { tableCells } from "../../../../constants/textContent";
 
 const getKeys = (item: ICommonItem): string[] => {
   return Object.keys(item).filter((key) => key !== "image" && key !== "_id");
@@ -78,7 +44,6 @@ const GenericTable: React.FC = () => {
 
   useEffect(() => {
     if (collection) {
-      console.log(`Dispatching fetchCollection for ${collection}`);
       dispatch(getCollection({ collection }));
     }
   }, [dispatch, collection]);
@@ -103,57 +68,74 @@ const GenericTable: React.FC = () => {
     setPage(0);
   };
 
+  const handleArchive = (id: string) => {
+    if (collection) {
+      dispatch(updateStatus({ collection, id, status: "archive" }));
+    }
+  };
+
   const filteredData = useMemo(() => {
     if (!collection) return [];
     return data ? filterFields(collection, data) : [];
   }, [data, collection]);
 
-  const tableHeaders = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) {
-      return null;
-    }
-
-    const keys = getKeys(filteredData[0] as ICommonItem);
-
-    return (
-      <StyledTableRow>
-        <StyledTableCell>id</StyledTableCell>
-        {keys.map((key) => (
-          <StyledTableCell key={`header-${key}`}>{key}</StyledTableCell>
-        ))}
-        <StyledTableCell></StyledTableCell>
-      </StyledTableRow>
+  const sortedData = useMemo(() => {
+    return filteredData.sort((a, b) =>
+      a.status === "archive" ? 1 : b.status === "archive" ? -1 : 0
     );
   }, [filteredData]);
 
+  const tableHeaders = useMemo(() => {
+    if (!sortedData || !sortedData.length) {
+      return <StyledTableRow></StyledTableRow>;
+    }
+
+    const keys = getKeys(sortedData[0] as ICommonItem).filter(
+      (key) => key !== "status"
+    );
+
+    return (
+      <StyledTableRow>
+        <StyledTableCell>{tableCells.id}</StyledTableCell>
+        {keys.map((key) => (
+          <StyledTableCell key={`header-${key}`}>
+            {formatFieldName(key)}
+          </StyledTableCell>
+        ))}
+        <StyledTableCell>{tableCells.status}</StyledTableCell>
+        <StyledTableCell></StyledTableCell>
+      </StyledTableRow>
+    );
+  }, [sortedData]);
+
   const tableContent = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) {
+    if (!sortedData || sortedData.length === 0) {
       return (
         <StyledTableRow key="no-data">
-          <StyledTableCell colSpan={3}>No data available</StyledTableCell>
+          <StyledTableCell colSpan={3}>{tableCells.ErrNoData}</StyledTableCell>
         </StyledTableRow>
       );
     }
 
-    const keys = getKeys(filteredData[0] as ICommonItem);
+    const keys = getKeys(sortedData[0] as ICommonItem).filter(
+      (key) => key !== "status"
+    );
 
-    return filteredData
+    return sortedData
       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      .map((item) => {
+      .map((item, index) => {
         const itemId = (item as ICommonItem)._id;
+        const displayIndex = page * rowsPerPage + index + 1;
+        const statusValue = (item as ICommonItem).status;
 
         return (
           <StyledTableRow key={itemId}>
-            <StyledTableCell>{itemId}</StyledTableCell>
+            <StyledTableCell>{displayIndex}</StyledTableCell>
             {keys.map((key) => {
               const value = item[key as keyof ICommonItem];
 
               return (
-                <StyledTableCell
-                  key={`${itemId}-${key}`}
-                  data-isstatus={key === "status"}
-                  status={key === "status" ? (value as string) : undefined}
-                >
+                <StyledTableCell key={`${itemId}-${key}`}>
                   {key === "name" ? (
                     <Tooltip>
                       {value !== undefined && value !== null
@@ -201,40 +183,40 @@ const GenericTable: React.FC = () => {
                 </StyledTableCell>
               );
             })}
+            <StyledTableCell status={statusValue}>
+              {statusValue}
+            </StyledTableCell>
             <StyledTableCell>
               <StyledButtonsContainer>
-                <TableButton title="Update" />
-                <TableButton title="Delete" />
+                <TableButton type="UPDATE" onClick={() => {}} />
+                <TableButton
+                  type="DELETE"
+                  onClick={() => handleArchive(itemId)}
+                />
               </StyledButtonsContainer>
             </StyledTableCell>
           </StyledTableRow>
         );
       });
-  }, [filteredData, page, rowsPerPage]);
+  }, [sortedData, page, rowsPerPage, dispatch, collection]);
 
   return (
-    <>
-      <TableContainer
-        component={Paper}
-        sx={{ boxShadow: 3, overflowX: "auto", maxHeight: "65vh" }}
-      >
-        <Table
-          sx={{ width: "100%", margin: "auto" }}
-          aria-label="customized table"
-        >
+    <StyledPaper>
+      <StyledTableContainer>
+        <StyledTable>
           <TableHead>{tableHeaders}</TableHead>
           <TableBody>{tableContent}</TableBody>
-        </Table>
-      </TableContainer>
+        </StyledTable>
+      </StyledTableContainer>
       <StyledTablePagination
         rowsPerPageOptions={[5, 10, 25]}
-        count={filteredData ? filteredData.length : 0}
+        count={sortedData ? sortedData.length : 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-    </>
+    </StyledPaper>
   );
 };
 

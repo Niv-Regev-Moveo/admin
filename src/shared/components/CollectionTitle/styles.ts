@@ -1,9 +1,5 @@
 import styled from "styled-components";
-import {
-  fontFamily,
-  fontSizes,
-  fontWeight,
-} from "../../../constants/constants";
+import { fontFamily, fontSizes, fontWeight } from "../../constants/constants";
 
 export const StyledH1 = styled.h1`
   font-family: ${fontFamily.globalFont};

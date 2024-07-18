@@ -13,6 +13,7 @@ export const filterFields = (
     chefs: ["chefOfTheWeek", "image", "_id"],
     restaurants: ["_id", "__v"],
     dishes: ["_id", "__v"],
+    chefOfTheWeek: ["_id", "__v"],
   };
 
   const excludeFields = fieldsToExclude[collection] || [];
@@ -34,4 +35,29 @@ export function isRestaurant(
 
 export function isDish(item: IChef | IRestaurant | IDish): item is IDish {
   return (item as IDish).price !== undefined;
+}
+
+export const formatFieldName = (fieldName: string): string => {
+  return fieldName
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase());
+};
+
+export const formFilterFields = (
+  collection: string,
+  data: ICommonItem[]
+): ICommonItem => {
+  if (!Array.isArray(data) || data.length === 0) return {} as ICommonItem;
+  return data[0];
+};
+
+export function isValidInputValue(
+  value: unknown
+): value is string | number | readonly string[] | undefined {
+  return (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    Array.isArray(value) ||
+    value === undefined
+  );
 }

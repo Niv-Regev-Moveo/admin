@@ -1,9 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import collectionAdapter from "./collection.adapter";
-import { Collection, IChef, IRestaurant, IDish } from "./collection.type";
 import axios from "axios";
-
-type CollectionDataType = IChef | IRestaurant | IDish;
+import collectionAdapter from "./collection.adapter";
+import { Collection } from "./collection.type";
+import { CollectionDataType } from "./collection.type";
 
 export const getCollection = createAsyncThunk<
   CollectionDataType[],
@@ -25,3 +24,30 @@ export const getCollection = createAsyncThunk<
     }
   }
 });
+
+export const updateStatus = createAsyncThunk(
+  "collection/updateStatus",
+  async (
+    {
+      collection,
+      id,
+      status,
+    }: { collection: Collection; id: string; status: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await collectionAdapter.updateStatus<Collection>(
+        collection,
+        id,
+        { status }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data ?? error.message);
+      } else {
+        return rejectWithValue("An unexpected error occurred");
+      }
+    }
+  }
+);

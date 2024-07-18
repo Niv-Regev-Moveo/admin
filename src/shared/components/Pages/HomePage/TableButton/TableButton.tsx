@@ -1,16 +1,17 @@
 import React from "react";
 import { StyledTableButton } from "./styles";
+import { TableButtonTypes } from "../../../../constants/textContent";
 
 interface TableButtonProps {
-  title: string;
-  onClick?: () => void;
+  type: keyof typeof TableButtonTypes;
+  onClick: () => void;
 }
 
-const TableButton: React.FC<TableButtonProps> = ({ title, onClick }) => {
+const TableButton: React.FC<TableButtonProps> = ({ type, onClick }) => {
   return (
     <StyledTableButton onClick={onClick}>
-      {title === "Delete" ? <i className="gg-trash"></i> : null}
-      {title === "Update" ? <i className="gg-pen"></i> : null}
+      {type === TableButtonTypes.DELETE && <i className="gg-trash"></i>}
+      {type === TableButtonTypes.UPDATE && <i className="gg-pen"></i>}
     </StyledTableButton>
   );
 };

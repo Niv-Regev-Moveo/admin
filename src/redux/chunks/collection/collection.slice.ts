@@ -1,6 +1,6 @@
 // collection.slice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getCollection } from "./collection.thunks";
+import { getCollection, updateStatus } from "./collection.thunks";
 import { CollectionSlice } from "../../../data/types/collectionSlice.type";
 import { CollectionType } from "./collection.type";
 
@@ -8,6 +8,7 @@ const initialState: CollectionSlice<CollectionType> = {
   data: null,
   httpErr: undefined,
 };
+
 export const collectionSlice = createSlice({
   name: "collection",
   initialState,
@@ -21,12 +22,30 @@ export const collectionSlice = createSlice({
       .addCase(
         getCollection.fulfilled,
         (state, action: PayloadAction<CollectionType[]>) => {
-          state.data = action.payload;
+          state.data = action.payload.sort((a, b) =>
+            a.status === "archive" ? 1 : b.status === "archive" ? -1 : 0
+          );
         }
       )
       .addCase(getCollection.rejected, (state, action) => {
         state.httpErr = action.payload as string;
-      });
+      })
+      .addCase(
+        updateStatus.fulfilled,
+        (state, action: PayloadAction<CollectionType>) => {
+          if (state.data) {
+            const index = state.data.findIndex(
+              (item) => item.id === action.payload.id
+            );
+            if (index !== -1) {
+              state.data[index] = action.payload;
+              state.data = state.data.sort((a, b) =>
+                a.status === "archive" ? 1 : b.status === "archive" ? -1 : 0
+              );
+            }
+          }
+        }
+      );
   },
 });
 

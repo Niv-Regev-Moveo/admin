@@ -46,4 +46,12 @@ export interface IDish extends ICommonItem {
   status: string;
 }
 
+export type FormValues = Partial<IChef & IRestaurant & IDish>;
+
+export type FormFields = keyof IChef | keyof IRestaurant | keyof IDish;
+
+export type NewItem = Omit<ICommonItem, "_id" | "id">;
+
 export type Collection = "chefs" | "restaurants" | "dishes";
+
+export type CollectionDataType = IChef | IRestaurant | IDish;
