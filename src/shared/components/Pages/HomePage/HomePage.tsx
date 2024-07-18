@@ -1,32 +1,38 @@
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import GenericTable from "../../GenericTable";
-import SideBar from "../../SideBar/SideBar";
-import { StyledPageContainer, StyledTableContainer } from "./styles";
+import React from "react";
+import { Outlet } from "react-router-dom";
+import SideBar from "./SideBar/index";
+import {
+  StyledPageContainer,
+  StyledTableContainer,
+  StyledPaper,
+  StyledTableWrapper,
+  StyledTitleSection,
+  StyledCreateButton,
+  StyledButtonEntryContainer,
+} from "./styles";
+import CollectionTitle from "../CollectionTitle/index";
+import { buttonsText } from "../../../constants/textContent";
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
   return (
-    <Router>
-      <StyledPageContainer className="container">
-        <SideBar />
+    <StyledPageContainer>
+      <SideBar />
 
-        <StyledTableContainer>
-          <Routes>
-            <Route
-              element={<GenericTable collection="chefs" />}
-              path="/chefs"
-            />
-            <Route
-              element={<GenericTable collection="restaurants" />}
-              path="/restaurants"
-            />
-            <Route
-              element={<GenericTable collection="dishes" />}
-              path="/dishes"
-            />
-          </Routes>
-        </StyledTableContainer>
-      </StyledPageContainer>
-    </Router>
+      <StyledTableContainer>
+        <StyledTitleSection>
+          <CollectionTitle />
+          <StyledButtonEntryContainer>
+            <StyledCreateButton>{buttonsText.createButton}</StyledCreateButton>
+          </StyledButtonEntryContainer>
+        </StyledTitleSection>
+
+        <StyledPaper>
+          <StyledTableWrapper>
+            <Outlet />
+          </StyledTableWrapper>
+        </StyledPaper>
+      </StyledTableContainer>
+    </StyledPageContainer>
   );
 };
 

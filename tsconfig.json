@@ -6,15 +6,15 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": true, // Enable all strict type-checking options
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "ESNext", // Align with ESNext module system
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx" // Use "react" if using an older version of React
+    "noEmit": true, // Do not emit compiled files
+    "jsx": "react-jsx" // Use "react-jsx" for React 17+ with JSX transformation
   },
-  "include": ["src"]
+  "include": ["src"] // Include all files in the src directory
 }

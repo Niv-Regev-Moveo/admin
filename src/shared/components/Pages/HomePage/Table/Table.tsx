@@ -5,26 +5,36 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import Paper from "@mui/material/Paper";
-import TablePagination from "@mui/material/TablePagination";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import { styled } from "@mui/material/styles";
-import { RootState, AppDispatch } from "../../../redux/store/store";
-import { getCollection } from "../../../redux/chunks/collection/collection.thunks";
+import { useParams } from "react-router-dom";
+import { RootState, AppDispatch } from "../../../../../redux/store/store";
+import { getCollection } from "../../../../../redux/chunks/collection/collection.thunks";
 import {
   Collection,
   ICommonItem,
-} from "../../../redux/chunks/collection/collection.type";
-import { Tooltip, TooltipText } from "./styles";
-import { filterFields } from "../../../services/collectionService"; // Import the filter service
+} from "../../../../../redux/chunks/collection/collection.type";
+import {
+  StyledButtonsContainer,
+  StyledTablePagination,
+  Tooltip,
+  TooltipText,
+} from "./styles";
+import { filterFields } from "../../../../../services/collectionService";
+import TableButton from "../TableButton/TableButton";
 
 const StyledTableCell = styled(TableCell)<{
-  isStatus?: boolean;
   status?: string;
-}>(({ theme, isStatus, status }) => ({
+}>(({ theme, status }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    textTransform: "uppercase",
+    textAlign: "center",
+    position: "sticky",
+    top: 0,
+    zIndex: theme.zIndex.appBar,
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
@@ -32,11 +42,13 @@ const StyledTableCell = styled(TableCell)<{
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    backgroundColor: isStatus
+    backgroundColor: status
       ? status === "active"
         ? "lightgreen"
         : "lightcoral"
-      : "inherit",
+      : "white",
+    color: "black",
+    textAlign: "center",
   },
 }));
 
@@ -50,15 +62,12 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   height: "68px",
 }));
 
-interface GenericTableProps {
-  collection: Collection;
-}
-
 const getKeys = (item: ICommonItem): string[] => {
   return Object.keys(item).filter((key) => key !== "image" && key !== "_id");
 };
 
-const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
+const GenericTable: React.FC = () => {
+  const { collection } = useParams<{ collection?: Collection }>();
   const dispatch = useDispatch<AppDispatch>();
   const { data, httpErr } = useSelector(
     (state: RootState) => state.collectionState
@@ -68,8 +77,10 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
-    console.log(`Dispatching fetchCollection for ${collection}`);
-    dispatch(getCollection({ collection }));
+    if (collection) {
+      console.log(`Dispatching fetchCollection for ${collection}`);
+      dispatch(getCollection({ collection }));
+    }
   }, [dispatch, collection]);
 
   useEffect(() => {
@@ -93,6 +104,7 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
   };
 
   const filteredData = useMemo(() => {
+    if (!collection) return [];
     return data ? filterFields(collection, data) : [];
   }, [data, collection]);
 
@@ -107,8 +119,9 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
       <StyledTableRow>
         <StyledTableCell>id</StyledTableCell>
         {keys.map((key) => (
-          <StyledTableCell key={key}>{key}</StyledTableCell>
+          <StyledTableCell key={`header-${key}`}>{key}</StyledTableCell>
         ))}
+        <StyledTableCell></StyledTableCell>
       </StyledTableRow>
     );
   }, [filteredData]);
@@ -116,7 +129,7 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
   const tableContent = useMemo(() => {
     if (!filteredData || filteredData.length === 0) {
       return (
-        <StyledTableRow>
+        <StyledTableRow key="no-data">
           <StyledTableCell colSpan={3}>No data available</StyledTableCell>
         </StyledTableRow>
       );
@@ -126,18 +139,19 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
 
     return filteredData
       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      .map((item, index) => {
+      .map((item) => {
         const itemId = (item as ICommonItem)._id;
 
         return (
           <StyledTableRow key={itemId}>
-            <StyledTableCell>{page * rowsPerPage + index + 1}</StyledTableCell>
+            <StyledTableCell>{itemId}</StyledTableCell>
             {keys.map((key) => {
               const value = item[key as keyof ICommonItem];
+
               return (
                 <StyledTableCell
                   key={`${itemId}-${key}`}
-                  isStatus={key === "status"}
+                  data-isstatus={key === "status"}
                   status={key === "status" ? (value as string) : undefined}
                 >
                   {key === "name" ? (
@@ -187,6 +201,12 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
                 </StyledTableCell>
               );
             })}
+            <StyledTableCell>
+              <StyledButtonsContainer>
+                <TableButton title="Update" />
+                <TableButton title="Delete" />
+              </StyledButtonsContainer>
+            </StyledTableCell>
           </StyledTableRow>
         );
       });
@@ -196,35 +216,23 @@ const GenericTable: React.FC<GenericTableProps> = ({ collection }) => {
     <>
       <TableContainer
         component={Paper}
-        sx={{ overflowX: "auto", maxHeight: "50vh" }}
+        sx={{ boxShadow: 3, overflowX: "auto", maxHeight: "65vh" }}
       >
         <Table
-          sx={{ width: "90%", margin: "auto" }}
+          sx={{ width: "100%", margin: "auto" }}
           aria-label="customized table"
         >
           <TableHead>{tableHeaders}</TableHead>
           <TableBody>{tableContent}</TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
+      <StyledTablePagination
         rowsPerPageOptions={[5, 10, 25]}
-        component="div"
         count={filteredData ? filteredData.length : 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          "& .MuiTablePagination-toolbar": {
-            padding: "0 1rem",
-            display: "flex",
-            justifyContent: "space-between",
-          },
-          "& .MuiTablePagination-actions": {
-            display: "flex",
-            alignItems: "center",
-          },
-        }}
       />
     </>
   );

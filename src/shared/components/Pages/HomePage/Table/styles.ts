@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import TablePagination from "@mui/material/TablePagination";
+import { TableHead } from "@mui/material";
 
 export const Tooltip = styled.div`
   position: relative;
@@ -30,5 +32,18 @@ export const TooltipText = styled.span`
     border-width: 5px;
     border-style: solid;
     border-color: black transparent transparent transparent;
+  }
+`;
+
+export const StyledTablePagination = styled(TablePagination)`
+  & .MuiTablePagination-toolbar {
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  & .MuiTablePagination-actions {
+    display: flex;
+    align-items: center;
   }
 `;
