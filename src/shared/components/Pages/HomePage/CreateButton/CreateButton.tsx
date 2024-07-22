@@ -1,10 +1,33 @@
-import React, { useState } from "react";
-import { StyledCreateButton, StyledButtonEntryContainer } from "./styles";
+// CreateButton.tsx
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  StyledCreateButton,
+  StyledButtonEntryContainer,
+  ModalOverlay,
+  ModalContent,
+  CloseButton,
+} from "./styles";
 import PopUpForm from "../../PopUpForm";
-import { ModalOverlay, ModalContent, CloseButton } from "./styles";
 import { buttonsText } from "../../../../constants/textContent";
+import { fetchChefs } from "../../../../../redux/chunks/collection/chefs/chefs.thunks";
+import { fetchRestaurants } from "../../../../../redux/chunks/collection/restaurants/restaurants.thunks";
+import { RootState, AppDispatch } from "../../../../../redux/store/store";
+
 const CreateButton: React.FC = () => {
   const [isFormVisible, setFormVisible] = useState(false);
+  const chefs = useSelector((state: RootState) => state.chefsState.chefs);
+  const restaurants = useSelector(
+    (state: RootState) => state.restaurantsState.restaurants
+  );
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    if (isFormVisible) {
+      dispatch(fetchChefs());
+      dispatch(fetchRestaurants());
+    }
+  }, [isFormVisible, dispatch]);
 
   const handleCreateButtonClick = () => {
     setFormVisible(true);
@@ -26,7 +49,7 @@ const CreateButton: React.FC = () => {
         <ModalOverlay>
           <ModalContent>
             <CloseButton onClick={handleCloseModal}>&times;</CloseButton>
-            <PopUpForm />
+            <PopUpForm chefs={chefs} restaurants={restaurants} />
           </ModalContent>
         </ModalOverlay>
       )}

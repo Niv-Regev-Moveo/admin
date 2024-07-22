@@ -51,3 +51,11 @@ export const StyledButton = styled.button`
     background-color: ${COLORS.button.buttonOnHover};
   }
 `;
+export const StyledSelect = styled.select`
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;

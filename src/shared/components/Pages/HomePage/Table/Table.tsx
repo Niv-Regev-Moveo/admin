@@ -26,7 +26,6 @@ import {
 import { filterFields } from "../../../../../services/collectionService";
 import TableButton from "../TableButton/TableButton";
 import { formatFieldName } from "../../../../../services/collectionService";
-import { tableCells } from "../../../../constants/textContent";
 
 const getKeys = (item: ICommonItem): string[] => {
   return Object.keys(item).filter((key) => key !== "image" && key !== "_id");
@@ -35,27 +34,19 @@ const getKeys = (item: ICommonItem): string[] => {
 const GenericTable: React.FC = () => {
   const { collection } = useParams<{ collection?: Collection }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { data, httpErr } = useSelector(
-    (state: RootState) => state.collectionState
-  );
+  const { data } = useSelector((state: RootState) => state.collectionState);
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [backgroundColors, setBackgroundColors] = useState<{
+    [key: string]: string;
+  }>({});
 
   useEffect(() => {
     if (collection) {
       dispatch(getCollection({ collection }));
     }
   }, [dispatch, collection]);
-
-  useEffect(() => {
-    if (data) {
-      console.log("Data received:", data);
-    }
-    if (httpErr) {
-      console.error("Error received:", httpErr);
-    }
-  }, [data, httpErr]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -68,9 +59,19 @@ const GenericTable: React.FC = () => {
     setPage(0);
   };
 
-  const handleArchive = (id: string) => {
-    if (collection) {
-      dispatch(updateStatus({ collection, id, status: "archive" }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleDelete = (id: string | undefined) => {
+    if (id) {
+      console.log(`Archiving item with id: ${id}`);
+      if (collection) {
+        dispatch(updateStatus({ collection, id, status: "archive" }));
+        setBackgroundColors((prevColors) => ({
+          ...prevColors,
+          [id]: "lightcoral",
+        }));
+      }
+    } else {
+      console.error("Failed to archive item: id is undefined");
     }
   };
 
@@ -96,13 +97,13 @@ const GenericTable: React.FC = () => {
 
     return (
       <StyledTableRow>
-        <StyledTableCell>{tableCells.id}</StyledTableCell>
+        <StyledTableCell>ID</StyledTableCell>
         {keys.map((key) => (
           <StyledTableCell key={`header-${key}`}>
             {formatFieldName(key)}
           </StyledTableCell>
         ))}
-        <StyledTableCell>{tableCells.status}</StyledTableCell>
+        <StyledTableCell>STATUS</StyledTableCell>
         <StyledTableCell></StyledTableCell>
       </StyledTableRow>
     );
@@ -112,7 +113,7 @@ const GenericTable: React.FC = () => {
     if (!sortedData || sortedData.length === 0) {
       return (
         <StyledTableRow key="no-data">
-          <StyledTableCell colSpan={3}>{tableCells.ErrNoData}</StyledTableCell>
+          <StyledTableCell colSpan={3}>No data available</StyledTableCell>
         </StyledTableRow>
       );
     }
@@ -129,13 +130,20 @@ const GenericTable: React.FC = () => {
         const statusValue = (item as ICommonItem).status;
 
         return (
-          <StyledTableRow key={itemId}>
+          <StyledTableRow
+            key={itemId}
+            style={{ backgroundColor: backgroundColors[itemId] || "inherit" }}
+          >
             <StyledTableCell>{displayIndex}</StyledTableCell>
             {keys.map((key) => {
               const value = item[key as keyof ICommonItem];
 
               return (
-                <StyledTableCell key={`${itemId}-${key}`}>
+                <StyledTableCell
+                  key={`${itemId}-${key}`}
+                  data-isstatus={key === "status"}
+                  status={key === "status" ? (value as string) : undefined}
+                >
                   {key === "name" ? (
                     <Tooltip>
                       {value !== undefined && value !== null
@@ -184,21 +192,21 @@ const GenericTable: React.FC = () => {
               );
             })}
             <StyledTableCell status={statusValue}>
-              {statusValue}
+              {statusValue === "archive" ? "Archive" : "Active"}
             </StyledTableCell>
             <StyledTableCell>
               <StyledButtonsContainer>
                 <TableButton type="UPDATE" onClick={() => {}} />
                 <TableButton
                   type="DELETE"
-                  onClick={() => handleArchive(itemId)}
+                  onClick={() => handleDelete(itemId)}
                 />
               </StyledButtonsContainer>
             </StyledTableCell>
           </StyledTableRow>
         );
       });
-  }, [sortedData, page, rowsPerPage, dispatch, collection]);
+  }, [sortedData, page, rowsPerPage, handleDelete, backgroundColors]);
 
   return (
     <StyledPaper>

@@ -47,10 +47,12 @@ class CollectionAdapter {
     id: string,
     status: { status: string }
   ): Promise<AxiosResponse<T>> {
+    console.log("update");
     const response = await HttpClientService.put<T>(
       `${CollectionAdapter.endpoint}/${collection}/${id}`,
       status
     );
+
     return response;
   }
 
@@ -58,6 +60,8 @@ class CollectionAdapter {
     collection: Collection,
     id: string
   ): Promise<AxiosResponse<void>> {
+    console.log("delete");
+
     const response = await HttpClientService.delete<void>(
       `${CollectionAdapter.endpoint}/${collection}/${id}`,
       null

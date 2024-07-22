@@ -1,8 +1,14 @@
-import React, { useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useMemo, useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
-import { RootState } from "../../../../redux/store/store";
-import { Collection } from "../../../../redux/chunks/collection/collection.type";
+import { RootState, AppDispatch } from "../../../../redux/store/store";
+import {
+  Collection,
+  FormValues,
+  CollectionDataType,
+} from "../../../../redux/chunks/collection/collection.type";
+import { fetchRestaurants } from "../../../../redux/chunks/collection/restaurants/restaurants.thunks";
+import { fetchChefs } from "../../../../redux/chunks/collection/chefs/chefs.thunks";
 import {
   StyledButton,
   StyledFormContainer,
@@ -10,16 +16,36 @@ import {
   StyledInput,
   StyledLabel,
 } from "./styles";
+import FormDropDown from "./DropDown/FormDropDown";
 import {
   formFilterFields,
   formatFieldName,
 } from "../../../../services/collectionService";
 import { formText } from "../../../constants/textContent";
+import { createNewItem } from "../../../../redux/chunks/collection/collection.thunks";
+import { isValidInputValue } from "../../../../services/collectionService"; // Adjust the import path as necessary
 
-const PopUpForm: React.FC = () => {
+interface DropdownOption {
+  _id: string;
+  name: string;
+}
+
+interface PopUpFormProps {
+  chefs: DropdownOption[];
+  restaurants: DropdownOption[];
+}
+
+const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
   const { collection } = useParams<{ collection?: Collection }>();
   const { data } = useSelector((state: RootState) => state.collectionState);
-  const [formValues, setFormValues] = useState<{ [key: string]: string }>({});
+  const dispatch = useDispatch<AppDispatch>();
+
+  const [formValues, setFormValues] = useState<FormValues>({});
+
+  useEffect(() => {
+    dispatch(fetchRestaurants());
+    dispatch(fetchChefs());
+  }, [dispatch]);
 
   const fields = useMemo(() => {
     if (!collection || !Array.isArray(data) || data.length === 0) return [];
@@ -27,16 +53,49 @@ const PopUpForm: React.FC = () => {
     return Object.keys(filteredFields);
   }, [collection, data]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormValues({
       ...formValues,
-      [name]: value,
+      [name]: name === "rating" || name === "price" ? parseFloat(value) : value,
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (collection) {
+      try {
+        console.log("Form values before transformation:", formValues);
+
+        const newItemData: Partial<CollectionDataType> = {
+          ...formValues,
+        } as Partial<CollectionDataType>;
+
+        if (collection === "restaurants") {
+          newItemData.rating =
+            typeof formValues.rating === "string"
+              ? parseFloat(formValues.rating)
+              : formValues.rating;
+          newItemData.chef = formValues.chef;
+        } else if (collection === "dishes") {
+          newItemData.price =
+            typeof formValues.price === "string"
+              ? parseFloat(formValues.price)
+              : formValues.price;
+          newItemData.restaurant = formValues.restaurant;
+        }
+
+        console.log("Form values being submitted:", newItemData);
+        const newItem = await dispatch(
+          createNewItem({ collection, data: newItemData })
+        ).unwrap();
+        console.log("New item created:", newItem);
+      } catch (error) {
+        console.error("Error creating item:", error);
+      }
+    }
   };
 
   const singularCollection = collection?.endsWith("s")
@@ -52,14 +111,52 @@ const PopUpForm: React.FC = () => {
         fields.map((field) => (
           <div key={field}>
             <StyledLabel htmlFor={field}>{formatFieldName(field)}</StyledLabel>
-            <StyledInput
-              type="text"
-              id={field}
-              name={field}
-              value={formValues[field] || ""}
-              onChange={handleChange}
-              placeholder={`Enter ${formatFieldName(field)}`}
-            />
+            {field === "chefName" ? (
+              <FormDropDown
+                options={chefs}
+                selectedValue={formValues.chef || ""}
+                onChange={handleChange}
+                placeholder="Chef"
+                name={"chef"}
+              />
+            ) : field === "restaurantName" ? (
+              <FormDropDown
+                options={restaurants}
+                selectedValue={formValues.restaurant || ""}
+                onChange={handleChange}
+                placeholder="Restaurant"
+                name={"restaurant"}
+              />
+            ) : field === "rating" ? (
+              <FormDropDown
+                options={[
+                  { _id: "1", name: "1" },
+                  { _id: "2", name: "2" },
+                  { _id: "3", name: "3" },
+                  { _id: "4", name: "4" },
+                  { _id: "5", name: "5" },
+                ]}
+                selectedValue={
+                  formValues.rating ? String(formValues.rating) : ""
+                }
+                onChange={handleChange}
+                placeholder="Rating"
+                name={"rating"}
+              />
+            ) : (
+              <StyledInput
+                type={field === "price" ? "number" : "text"}
+                id={field}
+                name={field}
+                value={
+                  isValidInputValue(formValues[field as keyof FormValues])
+                    ? String(formValues[field as keyof FormValues])
+                    : ""
+                }
+                onChange={handleChange}
+                placeholder=""
+              />
+            )}
           </div>
         ))
       ) : (

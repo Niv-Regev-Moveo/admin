@@ -2,21 +2,26 @@ import {
   IChef,
   IRestaurant,
   IDish,
+  ICommonItem,
 } from "../redux/chunks/collection/collection.type";
-import { ICommonItem } from "../redux/chunks/collection/collection.type";
+
+const collectionSpecificFieldsToExcludeForForm: { [key: string]: string[] } = {
+  chefs: ["restaurants"],
+  restaurants: ["dishes"],
+};
+
+const genericFieldsToExcludeForForm = ["status", "restaurants", "dishes"];
 
 export const filterFields = (
   collection: string,
   data: ICommonItem[]
 ): ICommonItem[] => {
-  const fieldsToExclude: { [key: string]: string[] } = {
-    chefs: ["chefOfTheWeek", "image", "_id"],
-    restaurants: ["_id", "__v"],
-    dishes: ["_id", "__v"],
-    chefOfTheWeek: ["_id", "__v"],
-  };
+  const fieldsToExcludeForTable: never[] = [];
 
-  const excludeFields = fieldsToExclude[collection] || [];
+  const excludeFields = [
+    ...fieldsToExcludeForTable,
+    ...(collectionSpecificFieldsToExcludeForForm[collection] || []),
+  ];
 
   return data.map((item) => {
     const filteredItem = { ...item } as Partial<ICommonItem>;
@@ -27,17 +32,10 @@ export const filterFields = (
   });
 };
 
-export function isRestaurant(
-  item: IChef | IRestaurant | IDish
-): item is IRestaurant {
-  return (item as IRestaurant).rating !== undefined;
-}
-
-export function isDish(item: IChef | IRestaurant | IDish): item is IDish {
-  return (item as IDish).price !== undefined;
-}
-
 export const formatFieldName = (fieldName: string): string => {
+  if (!fieldName || fieldName === "_id") {
+    return "";
+  }
   return fieldName
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (str) => str.toUpperCase());
@@ -48,7 +46,19 @@ export const formFilterFields = (
   data: ICommonItem[]
 ): ICommonItem => {
   if (!Array.isArray(data) || data.length === 0) return {} as ICommonItem;
-  return data[0];
+
+  const excludeFields = [
+    "_id",
+    ...genericFieldsToExcludeForForm,
+    ...(collectionSpecificFieldsToExcludeForForm[collection] || []),
+  ];
+
+  const filteredItem = { ...data[0] };
+  excludeFields.forEach((field) => {
+    delete filteredItem[field as keyof ICommonItem];
+  });
+
+  return filteredItem;
 };
 
 export function isValidInputValue(
@@ -60,4 +70,14 @@ export function isValidInputValue(
     Array.isArray(value) ||
     value === undefined
   );
+}
+
+export function isRestaurant(
+  item: IChef | IRestaurant | IDish
+): item is IRestaurant {
+  return (item as IRestaurant).rating !== undefined;
+}
+
+export function isDish(item: IChef | IRestaurant | IDish): item is IDish {
+  return (item as IDish).price !== undefined;
 }

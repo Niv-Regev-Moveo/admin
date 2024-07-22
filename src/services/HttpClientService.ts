@@ -11,7 +11,7 @@ export enum MethodOption {
   DELETE = "delete",
   PATCH = "patch",
 }
-const baseURL = "https://localhost:3000/api/v1";
+const baseURL = "http://localhost:3000/api/v1";
 
 export const HttpClientService = {
   async post<T>(
