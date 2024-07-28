@@ -1,50 +1,45 @@
-// collection.type.ts
 export interface ICommonItem {
   _id: string;
   id: string;
-  name?: string;
-  image?: string;
-  description?: string;
-  chefOfTheWeek?: boolean;
-  restaurants?: string[];
+  name: string;
+  image: string;
+  description: string;
   rating?: number;
-  chef?: string;
-  dishes?: string[];
+  chef?: string | IChef;
+  dishes?: string[] | IDish[];
   type?: string | null;
   price?: number;
   tags?: string[];
   ingredients?: string[];
-  restaurant?: string;
-  status?: string;
+  restaurant?: string | IRestaurant;
+  status: string;
   __v?: number;
+  chefName?: string;
+  restaurantName?: string;
+  chefOfTheWeek?: boolean;
+  restaurants?: string[];
 }
 
 export interface IChef extends ICommonItem {
-  name: string;
-  image: string;
-  description: string;
   chefOfTheWeek: boolean;
-  restaurants: string[];
 }
 
 export interface IRestaurant extends ICommonItem {
-  name: string;
-  image: string;
-  description: string;
   rating: number;
-  chef: string;
-  dishes: string[];
 }
 
 export interface IDish extends ICommonItem {
-  name: string;
-  image: string;
   type: string | null;
   price: number;
-  tags: string[];
-  ingredients: string[];
-  restaurant: string;
-  status: string;
+}
+
+export interface CollectionState {
+  data: ICommonItem[] | null;
+  httpErr: string | undefined;
+}
+
+export interface RootState {
+  collectionState: CollectionState;
 }
 
 export type FormValues = Partial<IChef & IRestaurant & IDish> & {

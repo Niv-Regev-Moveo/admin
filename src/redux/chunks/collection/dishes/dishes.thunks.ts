@@ -1,15 +1,15 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { IRestaurant } from "../collection.type";
+import { IDish } from "../collection.type";
 import { HttpClientService } from "../../../../services/HttpClientService";
 
-export const fetchRestaurants = createAsyncThunk<
-  IRestaurant[],
+export const fetchDishes = createAsyncThunk<
+  IDish[],
   void,
   { rejectValue: string }
->("restaurants/fetchRestaurants", async (_, { rejectWithValue }) => {
+>("dishes/fetchDishes", async (_, { rejectWithValue }) => {
   try {
-    const response = await HttpClientService.get<IRestaurant[]>("/restaurants");
+    const response = await HttpClientService.get<IDish[]>("/dishes");
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

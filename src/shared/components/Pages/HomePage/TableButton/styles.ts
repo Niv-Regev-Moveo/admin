@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { COLORS } from "../../../../constants/colors";
 
 export const StyledTableButton = styled.button`
   background: none;
@@ -8,7 +9,7 @@ export const StyledTableButton = styled.button`
   align-items: center;
   justify-content: center;
   margin-right: 30px;
-  color: #8c8b8b;
+  color: ${COLORS.button.tableButtons};
   border: none;
   border-radius: 8px;
 

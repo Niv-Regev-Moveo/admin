@@ -18,9 +18,13 @@ export const COLORS: IColors = {
   },
   border: {
     sectionBorder: "#dcdcdf",
+    inputBorder: "#ccc",
+    inputFocusBorder: "#555",
   },
   button: {
     backgroundColor: "#007bff",
     buttonOnHover: "#0056b3",
+    tableButtons: "#8c8b8b",
+    CloseButtonHover: "#eaeaea",
   },
 };

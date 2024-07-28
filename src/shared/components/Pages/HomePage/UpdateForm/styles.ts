@@ -3,8 +3,8 @@ import {
   fontFamily,
   fontSizes,
   fontWeight,
-} from "../../../constants/constants";
-import { COLORS } from "../../../constants/colors";
+} from "../../../../constants/constants";
+import { COLORS } from "../../../../constants/colors";
 
 export const StyledFormContainer = styled.div`
   padding: 16px;
@@ -50,12 +50,4 @@ export const StyledButton = styled.button`
   &:hover {
     background-color: ${COLORS.button.buttonOnHover};
   }
-`;
-export const StyledSelect = styled.select`
-  width: 100%;
-  padding: 8px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  border: 1px solid ${COLORS.border.inputBorder};
-  border-radius: 4px;
 `;

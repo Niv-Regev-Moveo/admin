@@ -1,19 +1,17 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import collectionAdapter from "./collection.adapter";
-import { Collection, IChef, IRestaurant, IDish } from "./collection.type";
+
+import { Collection, ICommonItem } from "./collection.type";
 import { HttpClientService } from "../../../services/HttpClientService";
 
-type CollectionDataType = IChef | IRestaurant | IDish;
-
 export const getCollection = createAsyncThunk<
-  CollectionDataType[],
+  ICommonItem[],
   { collection: Collection },
   { rejectValue: string }
 >("collection/getCollection", async ({ collection }, { rejectWithValue }) => {
   try {
-    const response = await collectionAdapter.getCollection<CollectionDataType>(
-      collection
+    const response = await HttpClientService.get<ICommonItem[]>(
+      `/${collection}`
     );
     return response.data;
   } catch (error) {
@@ -26,21 +24,42 @@ export const getCollection = createAsyncThunk<
   }
 });
 
-export const updateStatus = createAsyncThunk(
+export const updateStatus = createAsyncThunk<
+  ICommonItem,
+  { collection: Collection; id: string; status: string },
+  { rejectValue: string }
+>(
   "collection/updateStatus",
-  async (
-    {
-      collection,
-      id,
-      status,
-    }: { collection: Collection; id: string; status: string },
-    { rejectWithValue }
-  ) => {
+  async ({ collection, id, status }, { rejectWithValue }) => {
     try {
-      const response = await collectionAdapter.updateStatus<Collection>(
-        collection,
-        id,
-        { status }
+      const response = await HttpClientService.put<ICommonItem>(
+        `/${collection}/${id}`,
+        {
+          status,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data ?? error.message);
+      } else {
+        return rejectWithValue("An unexpected error occurred");
+      }
+    }
+  }
+);
+
+export const updateItem = createAsyncThunk<
+  ICommonItem,
+  { collection: Collection; id: string; data: Partial<ICommonItem> },
+  { rejectValue: string }
+>(
+  "collection/updateItem",
+  async ({ collection, id, data }, { rejectWithValue }) => {
+    try {
+      const response = await HttpClientService.put<ICommonItem>(
+        `/${collection}/${id}`,
+        data
       );
       return response.data;
     } catch (error) {
@@ -54,14 +73,14 @@ export const updateStatus = createAsyncThunk(
 );
 
 export const createNewItem = createAsyncThunk<
-  CollectionDataType,
-  { collection: Collection; data: Partial<CollectionDataType> },
+  ICommonItem,
+  { collection: Collection; data: Partial<ICommonItem> },
   { rejectValue: string }
 >(
   "collection/createNewItem",
   async ({ collection, data }, { rejectWithValue }) => {
     try {
-      const response = await HttpClientService.post<CollectionDataType>(
+      const response = await HttpClientService.post<ICommonItem>(
         `/${collection}`,
         data
       );
