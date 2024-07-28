@@ -7,11 +7,9 @@ import {
   StyledPaper,
   StyledTableWrapper,
   StyledTitleSection,
-  StyledCreateButton,
-  StyledButtonEntryContainer,
 } from "./styles";
-import CollectionTitle from "../CollectionTitle/index";
-import { buttonsText } from "../../../constants/textContent";
+import CollectionTitle from "../../CollectionTitle/CollectionTitle";
+import CreateButton from "../HomePage/CreateButton";
 
 const HomePage: React.FC = () => {
   return (
@@ -21,11 +19,8 @@ const HomePage: React.FC = () => {
       <StyledTableContainer>
         <StyledTitleSection>
           <CollectionTitle />
-          <StyledButtonEntryContainer>
-            <StyledCreateButton>{buttonsText.createButton}</StyledCreateButton>
-          </StyledButtonEntryContainer>
+          <CreateButton />
         </StyledTitleSection>
-
         <StyledPaper>
           <StyledTableWrapper>
             <Outlet />

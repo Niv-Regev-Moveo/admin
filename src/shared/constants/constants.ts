@@ -39,11 +39,12 @@ export const fontFamily: Record<string, string> = {
   globalFont: '"Roboto", sans-serif',
 };
 
-export const fontWeight: Record<string, number> = {
+export const fontWeight: Record<string, number | string> = {
   lightWeight: 100,
   mediumWeight: 200,
   heavyWeight: 300,
   boldWeight: 400,
+  thickWeight: "boldWeight",
 };
 
 export const collectionNames = ["Chefs", "Restaurants", "Dishes"];

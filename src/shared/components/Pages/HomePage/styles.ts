@@ -1,5 +1,11 @@
 import styled from "styled-components";
-import { fontFamily } from "../../../constants/constants";
+import {
+  fontFamily,
+  fontSizes,
+  fontWeight,
+  screenSizes,
+} from "../../../constants/constants";
+import { COLORS } from "../../../constants/colors";
 
 export const StyledPageContainer = styled.div`
   display: flex;
@@ -43,18 +49,25 @@ export const StyledButtonEntryContainer = styled.div`
 `;
 
 export const StyledCreateButton = styled.button`
-  background-color: blue;
+  background-color: ${COLORS.button.backgroundColor};
   padding-left: 15px;
   padding-right: 15px;
   padding-bottom: 5px;
   padding-top: 5px;
-  color: white;
+  color: ${COLORS.global.white};
   border: none;
   border-radius: 4px;
   font-family: ${fontFamily.globalFont};
-  background-color: #406af5;
+  font-size: ${fontSizes.medium};
+  font-weight: ${fontWeight.boldWeight};
 
   &:hover {
     cursor: pointer;
+    background-color: ${COLORS.button.buttonOnHover};
+  }
+
+  @media (max-width: ${screenSizes.medium}) {
+    font-size: ${fontSizes.small};
+    margin-left: 30px;
   }
 `;

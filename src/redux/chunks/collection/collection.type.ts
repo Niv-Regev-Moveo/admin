@@ -1,3 +1,4 @@
+// collection.type.ts
 export interface ICommonItem {
   _id: string;
   id: string;
@@ -46,4 +47,17 @@ export interface IDish extends ICommonItem {
   status: string;
 }
 
+export type FormValues = Partial<IChef & IRestaurant & IDish> & {
+  rating?: number;
+  price?: number;
+  tags?: string[];
+  ingredients?: string[];
+};
+
+export type FormFields = keyof IChef | keyof IRestaurant | keyof IDish;
+
+export type NewItem = Omit<ICommonItem, "_id" | "id">;
+
 export type Collection = "chefs" | "restaurants" | "dishes";
+
+export type CollectionDataType = IChef | IRestaurant | IDish;
