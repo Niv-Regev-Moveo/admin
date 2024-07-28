@@ -1,24 +1,31 @@
 import React from "react";
-import { StyledSelect } from "./styles";
+import { StyledSelect } from "../styles";
+
+interface DropdownOption {
+  _id: string;
+  name: string;
+}
 
 interface FormDropDownProps {
-  options: { _id: string; name: string }[];
+  options: DropdownOption[];
   selectedValue: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  name: string;
   placeholder: string;
+  name: string;
 }
 
 const FormDropDown: React.FC<FormDropDownProps> = ({
   options,
   selectedValue,
   onChange,
-  name,
   placeholder,
+  name,
 }) => {
   return (
-    <StyledSelect value={selectedValue} onChange={onChange} name={name}>
-      <option value="">{`Select ${placeholder}`}</option>
+    <StyledSelect name={name} value={selectedValue} onChange={onChange}>
+      <option value="" disabled>
+        {placeholder}
+      </option>
       {options.map((option) => (
         <option key={option._id} value={option._id}>
           {option.name}

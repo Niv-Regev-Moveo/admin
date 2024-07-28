@@ -37,3 +37,8 @@ export const formText = {
     headTitle: "Create",
   },
 };
+
+export const submitText = {
+  success: "Added item to the collection in the Data Base",
+  failure: "Fail to add item to Data Base",
+};

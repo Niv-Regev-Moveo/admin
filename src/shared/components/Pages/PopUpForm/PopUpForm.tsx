@@ -23,7 +23,6 @@ import {
 } from "../../../../services/collectionService";
 import { formText } from "../../../constants/textContent";
 import { createNewItem } from "../../../../redux/chunks/collection/collection.thunks";
-import { isValidInputValue } from "../../../../services/collectionService"; // Adjust the import path as necessary
 
 interface DropdownOption {
   _id: string;
@@ -33,9 +32,14 @@ interface DropdownOption {
 interface PopUpFormProps {
   chefs: DropdownOption[];
   restaurants: DropdownOption[];
+  onClose: () => void;
 }
 
-const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
+const PopUpForm: React.FC<PopUpFormProps> = ({
+  chefs,
+  restaurants,
+  onClose,
+}) => {
   const { collection } = useParams<{ collection?: Collection }>();
   const { data } = useSelector((state: RootState) => state.collectionState);
   const dispatch = useDispatch<AppDispatch>();
@@ -46,6 +50,17 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
     dispatch(fetchRestaurants());
     dispatch(fetchChefs());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (collection && Array.isArray(data) && data.length > 0) {
+      const initialFormValues: FormValues = {};
+      const fields = formFilterFields(collection, data);
+      Object.keys(fields).forEach((field) => {
+        initialFormValues[field as keyof FormValues];
+      });
+      setFormValues(initialFormValues);
+    }
+  }, [collection, data]);
 
   const fields = useMemo(() => {
     if (!collection || !Array.isArray(data) || data.length === 0) return [];
@@ -59,7 +74,7 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
     const { name, value } = e.target;
     setFormValues({
       ...formValues,
-      [name]: name === "rating" || name === "price" ? parseFloat(value) : value,
+      [name]: value || "",
     });
   };
 
@@ -67,8 +82,6 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
     e.preventDefault();
     if (collection) {
       try {
-        console.log("Form values before transformation:", formValues);
-
         const newItemData: Partial<CollectionDataType> = {
           ...formValues,
         } as Partial<CollectionDataType>;
@@ -78,20 +91,26 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
             typeof formValues.rating === "string"
               ? parseFloat(formValues.rating)
               : formValues.rating;
-          newItemData.chef = formValues.chef;
+          newItemData.chef =
+            typeof formValues.chef === "object"
+              ? formValues.chef._id
+              : formValues.chef;
         } else if (collection === "dishes") {
           newItemData.price =
             typeof formValues.price === "string"
               ? parseFloat(formValues.price)
               : formValues.price;
-          newItemData.restaurant = formValues.restaurant;
+          newItemData.restaurant =
+            typeof formValues.restaurant === "object"
+              ? formValues.restaurant._id
+              : formValues.restaurant;
         }
 
-        console.log("Form values being submitted:", newItemData);
-        const newItem = await dispatch(
+        await dispatch(
           createNewItem({ collection, data: newItemData })
         ).unwrap();
-        console.log("New item created:", newItem);
+
+        onClose();
       } catch (error) {
         console.error("Error creating item:", error);
       }
@@ -111,18 +130,26 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
         fields.map((field) => (
           <div key={field}>
             <StyledLabel htmlFor={field}>{formatFieldName(field)}</StyledLabel>
-            {field === "chefName" ? (
+            {field === "chef" ? (
               <FormDropDown
                 options={chefs}
-                selectedValue={formValues.chef || ""}
+                selectedValue={
+                  typeof formValues.chef === "object"
+                    ? formValues.chef._id
+                    : formValues.chef || ""
+                }
                 onChange={handleChange}
                 placeholder="Chef"
                 name={"chef"}
               />
-            ) : field === "restaurantName" ? (
+            ) : field === "restaurant" ? (
               <FormDropDown
                 options={restaurants}
-                selectedValue={formValues.restaurant || ""}
+                selectedValue={
+                  typeof formValues.restaurant === "object"
+                    ? formValues.restaurant._id
+                    : formValues.restaurant || ""
+                }
                 onChange={handleChange}
                 placeholder="Restaurant"
                 name={"restaurant"}
@@ -143,13 +170,26 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
                 placeholder="Rating"
                 name={"rating"}
               />
+            ) : field === "type" ? (
+              <FormDropDown
+                options={[
+                  { _id: "spicy", name: "spicy" },
+                  { _id: "vegan", name: "vegan" },
+                  { _id: "vegetarian", name: "vegetarian" },
+                  { _id: "no type", name: "no type" },
+                ]}
+                selectedValue={formValues.type ? String(formValues.type) : ""}
+                onChange={handleChange}
+                placeholder="Select type"
+                name={"type"}
+              />
             ) : (
               <StyledInput
                 type={field === "price" ? "number" : "text"}
                 id={field}
                 name={field}
                 value={
-                  isValidInputValue(formValues[field as keyof FormValues])
+                  formValues[field as keyof FormValues] !== undefined
                     ? String(formValues[field as keyof FormValues])
                     : ""
                 }
@@ -162,7 +202,7 @@ const PopUpForm: React.FC<PopUpFormProps> = ({ chefs, restaurants }) => {
       ) : (
         <p>{formText.errors.fieldError}</p>
       )}
-      <StyledButton type="submit">{formText.button.submit}</StyledButton>
+      <StyledButton type="submit">{formText.button.submit} </StyledButton>
     </StyledFormContainer>
   );
 };

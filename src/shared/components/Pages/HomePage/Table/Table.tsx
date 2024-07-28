@@ -1,52 +1,100 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import TableBody from "@mui/material/TableBody";
 import TableHead from "@mui/material/TableHead";
 import { useParams } from "react-router-dom";
-import { RootState, AppDispatch } from "../../../../../redux/store/store";
+import { AppDispatch } from "../../../../../redux/store/store";
 import {
   getCollection,
   updateStatus,
+  updateItem,
 } from "../../../../../redux/chunks/collection/collection.thunks";
 import {
   Collection,
   ICommonItem,
+  IChef,
+  IRestaurant,
 } from "../../../../../redux/chunks/collection/collection.type";
 import {
-  StyledButtonsContainer,
   StyledPaper,
   StyledTable,
-  StyledTableCell,
   StyledTableContainer,
   StyledTablePagination,
-  StyledTableRow,
-  Tooltip,
-  TooltipText,
+  ModalOverlay,
+  ModalContent,
+  CloseButton,
 } from "./styles";
 import { filterFields } from "../../../../../services/collectionService";
-import TableButton from "../TableButton/TableButton";
-import { formatFieldName } from "../../../../../services/collectionService";
+import UpdateForm from "../UpdateForm";
+import TableHeader from "./TableHeader/TableHeader";
+import TableContent from "./TableContent/TableContent";
 
-const getKeys = (item: ICommonItem): string[] => {
-  return Object.keys(item).filter((key) => key !== "image" && key !== "_id");
-};
+import { fetchRestaurants } from "../../../../../redux/chunks/collection/restaurants/restaurants.thunks";
+import { fetchChefs } from "../../../../../redux/chunks/collection/chefs/chefs.thunks";
+
+export interface DropdownOption {
+  _id: string;
+  name: string;
+}
 
 const GenericTable: React.FC = () => {
   const { collection } = useParams<{ collection?: Collection }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { data } = useSelector((state: RootState) => state.collectionState);
-
+  const [tableData, setTableData] = useState<ICommonItem[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [backgroundColors, setBackgroundColors] = useState<{
     [key: string]: string;
   }>({});
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ICommonItem | null>(null);
+  const [chefOptions, setChefOptions] = useState<DropdownOption[]>([]);
+  const [restaurantOptions, setRestaurantOptions] = useState<DropdownOption[]>(
+    []
+  );
 
   useEffect(() => {
     if (collection) {
-      dispatch(getCollection({ collection }));
+      fetchData();
+      fetchChefsOptions();
+      fetchRestaurantOptions();
     }
-  }, [dispatch, collection]);
+  }, [collection]);
+
+  const fetchData = async () => {
+    if (collection) {
+      const action = await dispatch(getCollection({ collection }));
+      if (getCollection.fulfilled.match(action)) {
+        setTableData(action.payload);
+      }
+    }
+  };
+
+  const fetchChefsOptions = async () => {
+    const action = await dispatch(fetchChefs());
+    if (fetchChefs.fulfilled.match(action)) {
+      const options = action.payload.map((chef: IChef) => ({
+        _id: chef._id,
+        name: chef.name,
+      }));
+      setChefOptions(options);
+    } else {
+      console.error("Failed to fetch chefs:", action.error);
+    }
+  };
+
+  const fetchRestaurantOptions = async () => {
+    const action = await dispatch(fetchRestaurants());
+    if (fetchRestaurants.fulfilled.match(action)) {
+      const options = action.payload.map((restaurant: IRestaurant) => ({
+        _id: restaurant._id,
+        name: restaurant.name,
+      }));
+      setRestaurantOptions(options);
+    } else {
+      console.error("Failed to fetch restaurants:", action.error);
+    }
+  };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -59,26 +107,52 @@ const GenericTable: React.FC = () => {
     setPage(0);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handleDelete = (id: string | undefined) => {
-    if (id) {
-      console.log(`Archiving item with id: ${id}`);
-      if (collection) {
-        dispatch(updateStatus({ collection, id, status: "archive" }));
-        setBackgroundColors((prevColors) => ({
-          ...prevColors,
-          [id]: "lightcoral",
-        }));
+  const handleUpdate = (item: ICommonItem) => {
+    setSelectedItem(item);
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedItem(null);
+  };
+
+  const handleDelete = async (id: string | undefined) => {
+    if (id && collection) {
+      try {
+        const action = await dispatch(
+          updateStatus({ collection, id, status: "archive" })
+        );
+        if (updateStatus.fulfilled.match(action)) {
+          setBackgroundColors((prevColors) => ({
+            ...prevColors,
+            [id]: "lightcoral",
+          }));
+          await fetchData(); // Re-fetch data to get the latest status
+        }
+      } catch (error) {
+        console.error("Failed to archive item:", error);
       }
     } else {
       console.error("Failed to archive item: id is undefined");
     }
   };
 
+  const handleUpdateSubmit = async (updatedFields: Partial<ICommonItem>) => {
+    if (collection && selectedItem) {
+      await dispatch(
+        updateItem({ collection, id: selectedItem._id, data: updatedFields })
+      );
+      await fetchData();
+      handleClosePopup();
+    }
+  };
+
   const filteredData = useMemo(() => {
     if (!collection) return [];
-    return data ? filterFields(collection, data) : [];
-  }, [data, collection]);
+
+    return filterFields(collection, tableData);
+  }, [tableData, collection]);
 
   const sortedData = useMemo(() => {
     return filteredData.sort((a, b) =>
@@ -86,144 +160,47 @@ const GenericTable: React.FC = () => {
     );
   }, [filteredData]);
 
-  const tableHeaders = useMemo(() => {
-    if (!sortedData || !sortedData.length) {
-      return <StyledTableRow></StyledTableRow>;
-    }
-
-    const keys = getKeys(sortedData[0] as ICommonItem).filter(
-      (key) => key !== "status"
-    );
-
-    return (
-      <StyledTableRow>
-        <StyledTableCell>ID</StyledTableCell>
-        {keys.map((key) => (
-          <StyledTableCell key={`header-${key}`}>
-            {formatFieldName(key)}
-          </StyledTableCell>
-        ))}
-        <StyledTableCell>STATUS</StyledTableCell>
-        <StyledTableCell></StyledTableCell>
-      </StyledTableRow>
-    );
-  }, [sortedData]);
-
-  const tableContent = useMemo(() => {
-    if (!sortedData || sortedData.length === 0) {
-      return (
-        <StyledTableRow key="no-data">
-          <StyledTableCell colSpan={3}>No data available</StyledTableCell>
-        </StyledTableRow>
-      );
-    }
-
-    const keys = getKeys(sortedData[0] as ICommonItem).filter(
-      (key) => key !== "status"
-    );
-
-    return sortedData
-      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      .map((item, index) => {
-        const itemId = (item as ICommonItem)._id;
-        const displayIndex = page * rowsPerPage + index + 1;
-        const statusValue = (item as ICommonItem).status;
-
-        return (
-          <StyledTableRow
-            key={itemId}
-            style={{ backgroundColor: backgroundColors[itemId] || "inherit" }}
-          >
-            <StyledTableCell>{displayIndex}</StyledTableCell>
-            {keys.map((key) => {
-              const value = item[key as keyof ICommonItem];
-
-              return (
-                <StyledTableCell
-                  key={`${itemId}-${key}`}
-                  data-isstatus={key === "status"}
-                  status={key === "status" ? (value as string) : undefined}
-                >
-                  {key === "name" ? (
-                    <Tooltip>
-                      {value !== undefined && value !== null
-                        ? String(value)
-                        : ""}
-                      <TooltipText className="tooltiptext">
-                        {itemId}
-                      </TooltipText>
-                    </Tooltip>
-                  ) : key === "chefName" ? (
-                    value && typeof value === "string" ? (
-                      value
-                    ) : (
-                      ""
-                    )
-                  ) : key === "dishes" ? (
-                    Array.isArray(value) ? (
-                      (value as string[]).map((dish, i) => (
-                        <React.Fragment key={`${itemId}-dish-${i}`}>
-                          {i > 0 && ", "}
-                          {dish}
-                        </React.Fragment>
-                      ))
-                    ) : (
-                      ""
-                    )
-                  ) : key === "restaurants" ? (
-                    Array.isArray(value) ? (
-                      (value as unknown as { name: string }[]).map(
-                        (restaurant, i) => (
-                          <React.Fragment key={`${itemId}-restaurant-${i}`}>
-                            {i > 0 && ", "}
-                            {restaurant.name}
-                          </React.Fragment>
-                        )
-                      )
-                    ) : (
-                      ""
-                    )
-                  ) : value !== undefined && value !== null ? (
-                    String(value)
-                  ) : (
-                    ""
-                  )}
-                </StyledTableCell>
-              );
-            })}
-            <StyledTableCell status={statusValue}>
-              {statusValue === "archive" ? "Archive" : "Active"}
-            </StyledTableCell>
-            <StyledTableCell>
-              <StyledButtonsContainer>
-                <TableButton type="UPDATE" onClick={() => {}} />
-                <TableButton
-                  type="DELETE"
-                  onClick={() => handleDelete(itemId)}
-                />
-              </StyledButtonsContainer>
-            </StyledTableCell>
-          </StyledTableRow>
-        );
-      });
-  }, [sortedData, page, rowsPerPage, handleDelete, backgroundColors]);
-
   return (
     <StyledPaper>
       <StyledTableContainer>
         <StyledTable>
-          <TableHead>{tableHeaders}</TableHead>
-          <TableBody>{tableContent}</TableBody>
+          <TableHead>
+            <TableHeader data={sortedData} />
+          </TableHead>
+          <TableBody>
+            <TableContent
+              data={sortedData}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              backgroundColors={backgroundColors}
+              handleUpdate={handleUpdate}
+              handleDelete={handleDelete}
+            />
+          </TableBody>
         </StyledTable>
       </StyledTableContainer>
       <StyledTablePagination
         rowsPerPageOptions={[5, 10, 25]}
-        count={sortedData ? sortedData.length : 0}
+        count={sortedData.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+      {isPopupOpen && selectedItem && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={handleClosePopup}>&times;</CloseButton>
+            <UpdateForm
+              chefs={chefOptions}
+              restaurants={restaurantOptions}
+              initialValues={selectedItem}
+              onClose={handleClosePopup}
+              onSubmit={handleUpdateSubmit}
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </StyledPaper>
   );
 };

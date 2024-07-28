@@ -12,6 +12,8 @@ const collectionSpecificFieldsToExcludeForForm: { [key: string]: string[] } = {
 
 const genericFieldsToExcludeForForm = ["status", "restaurants", "dishes"];
 
+const genericFieldsToExcludeForUpdateForm = ["restaurants", "dishes"];
+
 export const filterFields = (
   collection: string,
   data: ICommonItem[]
@@ -36,9 +38,11 @@ export const formatFieldName = (fieldName: string): string => {
   if (!fieldName || fieldName === "_id") {
     return "";
   }
-  return fieldName
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase());
+  return fieldName;
+};
+
+export const getKeys = (item: ICommonItem): string[] => {
+  return Object.keys(item).filter((key) => key !== "image" && key !== "_id");
 };
 
 export const formFilterFields = (
@@ -58,6 +62,23 @@ export const formFilterFields = (
     delete filteredItem[field as keyof ICommonItem];
   });
 
+  return filteredItem;
+};
+
+export const formUpdateFields = (
+  collection: string,
+  data: ICommonItem
+): Partial<ICommonItem> => {
+  const excludeFields = [
+    "_id",
+    ...genericFieldsToExcludeForUpdateForm,
+    ...(collectionSpecificFieldsToExcludeForForm[collection] || []),
+  ];
+
+  const filteredItem: Partial<ICommonItem> = { ...data };
+  excludeFields.forEach((field) => {
+    delete filteredItem[field as keyof ICommonItem];
+  });
   return filteredItem;
 };
 
@@ -81,3 +102,28 @@ export function isRestaurant(
 export function isDish(item: IChef | IRestaurant | IDish): item is IDish {
   return (item as IDish).price !== undefined;
 }
+
+export type ValueType =
+  | string
+  | number
+  | boolean
+  | string[]
+  | { _id: string }
+  | IChef
+  | IRestaurant
+  | IDish[]
+  | null
+  | undefined;
+export const ensureString = (value: ValueType): string => {
+  if (typeof value === "string") {
+    return value;
+  } else if (typeof value === "number" || typeof value === "boolean") {
+    return value.toString();
+  } else if (Array.isArray(value)) {
+    return value.join(", ");
+  } else if (value && typeof value === "object" && "_id" in value) {
+    return value._id;
+  } else {
+    return "";
+  }
+};

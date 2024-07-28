@@ -15,7 +15,6 @@ const HomePage: React.FC = () => {
   return (
     <StyledPageContainer>
       <SideBar />
-
       <StyledTableContainer>
         <StyledTitleSection>
           <CollectionTitle />

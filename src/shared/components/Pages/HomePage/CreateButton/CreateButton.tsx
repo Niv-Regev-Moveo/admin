@@ -1,4 +1,3 @@
-// CreateButton.tsx
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -49,7 +48,13 @@ const CreateButton: React.FC = () => {
         <ModalOverlay>
           <ModalContent>
             <CloseButton onClick={handleCloseModal}>&times;</CloseButton>
-            <PopUpForm chefs={chefs} restaurants={restaurants} />
+            <PopUpForm
+              chefs={chefs}
+              restaurants={restaurants}
+              onClose={function (): void {
+                throw new Error("Function not implemented.");
+              }}
+            />
           </ModalContent>
         </ModalOverlay>
       )}
