@@ -15,11 +15,6 @@ export const StyledPopUpSubmitMessageContainer = styled.div`
   font-family: ${fontFamily.global};
 `;
 
-export const StyledButtonContainer = styled.div`
-  display: flex;
-  justify-content: end;
-`;
-
 export const StyledTextContainer = styled.div`
   display: flex;
   justify-content: center;
