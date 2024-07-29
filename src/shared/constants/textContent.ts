@@ -38,6 +38,22 @@ export const formText = {
   },
 };
 
+export const Login = {
+  form: {
+    labels: {
+      email: "Email :",
+      password: "Password :",
+    },
+    placeHolders: {
+      email: "Insert your Email",
+      Password: "Insert your Password",
+    },
+    button: {
+      title: "Login",
+    },
+  },
+};
+
 export const submitText = {
   success: "Added item to the collection in the Data Base",
   failure: "Fail to add item to Data Base",

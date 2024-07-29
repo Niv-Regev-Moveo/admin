@@ -26,5 +26,6 @@ export const COLORS: IColors = {
     buttonOnHover: "#0056b3",
     tableButtons: "#8c8b8b",
     CloseButtonHover: "#eaeaea",
+    loginButton: "#228B22",
   },
 };
