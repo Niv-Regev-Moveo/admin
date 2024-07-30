@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { TableCell, TableRow, tableCellClasses } from "@mui/material";
 import { fontFamily } from "../../../../../constants/constants";
+import { COLORS } from "../../../../../constants/colors";
 
 export const StyledTableCell = styled(TableCell)<{
   status?: string;
@@ -34,7 +35,7 @@ export const StyledTableCell = styled(TableCell)<{
 
 export const StyledTableRow = styled(TableRow)`
   &:nth-of-type(odd) {
-    background-color: white;
+    background-color: ${COLORS.global.white};
   }
 
   &:last-child td,

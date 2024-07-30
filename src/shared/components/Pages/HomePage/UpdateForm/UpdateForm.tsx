@@ -18,6 +18,7 @@ import {
   formatFieldName,
 } from "../../../../../services/collectionService";
 import DropdownField from "./DropDownFields";
+import { buttonsText, textErrors } from "../../../../constants/textContent";
 
 interface DropdownOption {
   _id: string;
@@ -109,7 +110,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
 
   return (
     <StyledFormContainer as="form" onSubmit={handleSubmit}>
-      <StyledFormTitle>Update {singularCollection}</StyledFormTitle>
+      <StyledFormTitle>
+        {buttonsText.tableButtons.update} {singularCollection}
+      </StyledFormTitle>
       {fields.length > 0 ? (
         fields.map((field) => (
           <div key={field}>
@@ -193,9 +196,11 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
           </div>
         ))
       ) : (
-        <p>No fields available</p>
+        <p>{textErrors.noFieldsAvailable}</p>
       )}
-      <StyledButton type="submit">Update</StyledButton>
+      <StyledButton type="submit">
+        {buttonsText.tableButtons.update}
+      </StyledButton>
     </StyledFormContainer>
   );
 };

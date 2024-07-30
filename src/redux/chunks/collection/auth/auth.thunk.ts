@@ -1,34 +1,26 @@
-// src/redux/chunks/collection/auth/auth.thunk.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { LoginCredentials, LoginResponse } from "./auth.type";
 import axios from "axios";
-import { IUser } from "./auth.type";
-
-interface LoginCredentials {
-  mail: string;
-  password: string;
-}
-
-interface LoginResponse {
-  user: IUser;
-}
+import { axiosInstance } from "../../../../utils/axiosInstance";
 
 export const loginUser = createAsyncThunk<
   LoginResponse,
   LoginCredentials,
-  { rejectValue: string }
+  { rejectValue: { message: string } }
 >("auth/login", async ({ mail, password }, { rejectWithValue }) => {
   try {
-    const response = await axios.post<LoginResponse>(
-      "http://localhost:3000/api/v1/users/login",
-      { mail, password }
-    );
+    const response = await axiosInstance.post<LoginResponse>("/users/login", {
+      mail,
+      password,
+    });
     return response.data;
   } catch (error) {
-    console.error("Error logging in:", error);
-    if (axios.isAxiosError(error)) {
-      return rejectWithValue(error.response?.data.message ?? error.message);
+    if (axios.isAxiosError(error) && error.response) {
+      return rejectWithValue({
+        message: error.response.data.message || error.message,
+      });
     } else {
-      return rejectWithValue("An unexpected error occurred");
+      return rejectWithValue({ message: "An unexpected error occurred" });
     }
   }
 });
