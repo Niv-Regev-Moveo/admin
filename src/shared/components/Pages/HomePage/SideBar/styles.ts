@@ -7,12 +7,13 @@ import {
   letterSpacing,
   screenSizes,
 } from "../../../../constants/constants";
+import { COLORS } from "../../../../constants/colors";
 
 export const StyledSideBarContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 13%;
-  border-right: 1px solid #dcdcdf;
+  border-right: 1px solid ${COLORS.border.sectionBorder};
   min-width: 130px;
 `;
 
@@ -25,7 +26,7 @@ export const StyledContentTitle = styled.h2`
   padding-left: 15px;
   padding-bottom: 30px;
   padding-top: 30px;
-  border-bottom: 1px solid #dcdcdf;
+  border-bottom: 1px solid ${COLORS.border.sectionBorder};
 `;
 
 export const StyledLink = styled(NavLink)`
@@ -49,9 +50,9 @@ export const StyledLink = styled(NavLink)`
     color: inherit;
   }
   &.active {
-    background-color: #d7dff7;
-    color: blue;
-    border-right: 1px solid blue;
+    background-color: ${COLORS.sidebar.sectionActive};
+    color: ${COLORS.sidebar.blue};
+    border-right: 1px solid ${COLORS.sidebar.blue};
   }
 
   &:hover {

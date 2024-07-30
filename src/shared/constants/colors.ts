@@ -25,7 +25,16 @@ export const COLORS: IColors = {
     backgroundColor: "#007bff",
     buttonOnHover: "#0056b3",
     tableButtons: "#8c8b8b",
-    CloseButtonHover: "#eaeaea",
+    closeButtonHover: "#eaeaea",
     loginButton: "#228B22",
   },
+  sidebar: {
+    sectionActive: "#d7dff7",
+    sectionRightBorder: "blue",
+  },
+  errorMessage: {
+    backgroundColor: "#e60000",
+  },
 };
+
+//

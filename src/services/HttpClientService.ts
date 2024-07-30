@@ -2,7 +2,8 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { axiosInstance } from "../utils/axiosInstance";
 
 export enum MethodOption {
   POST = "post",
@@ -87,6 +88,6 @@ export const HttpClientService = {
     httpOptions.headers = {
       ...httpOptions.headers,
     };
-    return axios(httpOptions);
+    return axiosInstance(httpOptions);
   },
 };

@@ -11,7 +11,7 @@ const CollectionTitle: React.FC = () => {
     <StyledH1>
       {collectionName
         ? collectionName.charAt(0).toUpperCase() + collectionName.slice(1)
-        : "Hello"}
+        : "Welcome , Select collection"}
     </StyledH1>
   );
 };

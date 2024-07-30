@@ -9,6 +9,7 @@ export const buttonsText = {
   tableButtons: {
     create: "Update",
     delete: "Delete",
+    update: "Update",
   },
   formButtons: {
     submit: "Submit",
@@ -23,7 +24,6 @@ export const TableButtonTypes = {
 export const tableCells = {
   id: "ID",
   status: "STATUS",
-  ErrNoData: "No data available",
 };
 
 export const formText = {
@@ -41,7 +41,7 @@ export const formText = {
 export const Login = {
   form: {
     labels: {
-      email: "Email :",
+      email: "Mail :",
       password: "Password :",
     },
     placeHolders: {
@@ -54,7 +54,17 @@ export const Login = {
   },
 };
 
+export const tableHeaders = {
+  id: "ID",
+  status: "STATUS",
+};
+
 export const submitText = {
   success: "Added item to the collection in the Data Base",
   failure: "Fail to add item to Data Base",
+};
+
+export const textErrors = {
+  noData: "No data available",
+  noFieldsAvailable: "No fields available",
 };

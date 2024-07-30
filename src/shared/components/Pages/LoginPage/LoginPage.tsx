@@ -1,7 +1,6 @@
-// LoginPage.tsx (Frontend)
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../../../redux/chunks/collection/auth/auth.thunk";
+import { clearError } from "../../../../redux/chunks/collection/auth/auth.slice";
 import { RootState, AppDispatch } from "../../../../redux/store/store";
 import {
   StyledLoginContainer,
@@ -12,43 +11,26 @@ import {
   StyledButtonContainer,
 } from "./styles";
 import { useNavigate } from "react-router-dom";
+import LoginParagraph from "./LoginParagraph";
+import { handleLogin } from "../../../../services/loginService";
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [mail, setMail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const { loading, error, user } = useSelector(
+  const { loading, user, error } = useSelector(
     (state: RootState) => state.authState
   );
 
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const resultAction = await dispatch(loginUser({ mail, password }));
-      if (loginUser.fulfilled.match(resultAction)) {
-        console.log("Login successful:", resultAction.payload);
-        onLogin();
-        navigate(
-          //insert here component for "welcome - choose table"
-          `/content/chefs
-          
-          `
-        );
-      } else {
-        if (resultAction.payload) {
-          console.error("Login failed:", resultAction.payload);
-        } else {
-          console.error("Login failed: No payload returned");
-        }
-      }
-    } catch (error) {
-      console.error("Unexpected error during login:", error);
-    }
+
+    await handleLogin(dispatch, mail, password, navigate);
   };
 
   return (
@@ -78,9 +60,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {loading ? "Logging in..." : "Login"}
           </StyledButton>
         </StyledButtonContainer>
-        {error && <p>{error}</p>}
       </form>
-      {user && <p>Welcome, {user.surname}</p>}
+      {error && <LoginParagraph>{error}</LoginParagraph>}
+      {user && !error && (
+        <LoginParagraph>Welcome, {user.surname}</LoginParagraph>
+      )}
     </StyledLoginContainer>
   );
 };

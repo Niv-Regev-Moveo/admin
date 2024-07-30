@@ -1,5 +1,4 @@
-// src/App.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   Route,
   BrowserRouter as Router,
@@ -11,24 +10,19 @@ import GenericTable from "./shared/components/Pages/HomePage/Table";
 import Login from "./shared/components/Pages/LoginPage";
 import { StyledPageContainer } from "./globalStyles";
 import "./index.css";
+import { useSelector } from "react-redux";
+import { RootState } from "./redux/store/store";
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+  const token = useSelector((state: RootState) => state.authState.token);
 
   return (
     <Router>
       <StyledPageContainer>
         <Routes>
-          {!isLoggedIn ? (
+          {!token ? (
             <>
-              <Route
-                path="/users/login"
-                element={<Login onLogin={handleLogin} />}
-              />
+              <Route path="/users/login" element={<Login />} />
               <Route path="*" element={<Navigate to="/users/login" />} />
             </>
           ) : (

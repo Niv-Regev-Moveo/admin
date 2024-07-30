@@ -51,7 +51,7 @@ export const ModalOverlay = styled.div`
 `;
 
 export const ModalContent = styled.div`
-  background: white;
+  background: ${COLORS.global.white};
   border-radius: 4px;
   position: relative;
   max-width: 500px;
@@ -68,7 +68,7 @@ export const CloseButton = styled.button`
   cursor: pointer;
   border-radius: 10%;
   &:hover {
-    background: #eaeaea;
+    background: ${COLORS.button.closeButtonHover};
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   }
 `;

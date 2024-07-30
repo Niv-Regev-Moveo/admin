@@ -66,7 +66,3 @@ export const StyledButtonContainer = styled.div`
   display: flex;
   justify-content: center;
 `;
-
-export const StyledParagraph = styled.div`
-  color: ${COLORS.global.white};
-`;

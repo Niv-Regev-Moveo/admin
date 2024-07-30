@@ -5,6 +5,7 @@ import {
   formatFieldName,
   getKeys,
 } from "../../../../../../services/collectionService";
+import { tableHeaders } from "../../../../../constants/textContent";
 
 interface TableHeaderProps {
   data: ICommonItem[];
@@ -17,13 +18,13 @@ const TableHeader: React.FC<TableHeaderProps> = ({ data }) => {
 
   return (
     <StyledTableRow>
-      <StyledTableCell>ID</StyledTableCell>
+      <StyledTableCell>{tableHeaders.id}</StyledTableCell>
       {keys.map((key) => (
         <StyledTableCell key={`header-${key}`}>
           {formatFieldName(key)}
         </StyledTableCell>
       ))}
-      <StyledTableCell>STATUS</StyledTableCell>
+      <StyledTableCell>{tableHeaders.status}</StyledTableCell>
       <StyledTableCell></StyledTableCell>
     </StyledTableRow>
   );

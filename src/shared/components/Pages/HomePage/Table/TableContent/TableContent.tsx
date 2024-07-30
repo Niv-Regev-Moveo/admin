@@ -9,6 +9,7 @@ import {
 import { ICommonItem } from "../../../../../../redux/chunks/collection/collection.type";
 import { getKeys } from "../../../../../../services/collectionService";
 import TableButton from "../../TableButton";
+import { textErrors } from "../../../../../constants/textContent";
 
 interface TableContentProps {
   data: ICommonItem[];
@@ -30,7 +31,7 @@ const TableContent: React.FC<TableContentProps> = ({
   if (!data || data.length === 0) {
     return (
       <StyledTableRow key="no-data">
-        <StyledTableCell colSpan={3}>No data available</StyledTableCell>
+        <StyledTableCell colSpan={3}>${textErrors.noData}</StyledTableCell>
       </StyledTableRow>
     );
   }

@@ -14,7 +14,7 @@ export const StyledTableButton = styled.button`
   border-radius: 8px;
 
   &:hover {
-    color: black;
+    color: ${COLORS.global.black};
     i {
       transform: scale(1.3);
       transition: transform 0.3s ease-out;
